@@ -194,17 +194,7 @@
         }
         
 /* === MAP === */
-        .container {
-    height: calc(100vh - 82px);
-}
-#map {
-  flex: 1;
-  height: 100%;
-  width: 100%;
-  min-height: 400px;
-  background: #ddd;
-  z-index: 1;
-}
+
 
         /* === POPUP === */
         .custom-popup .leaflet-popup-content-wrapper {
@@ -288,6 +278,18 @@
                 order: 1;
             }
         }
+        html, body {
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    height: calc(100vh - 82px);
+}
+
+#map {
+    flex: 1;
+}
     </style>
 </head>
 <body>
