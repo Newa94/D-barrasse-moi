@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Débarrasse-moi - Signalement d'encombrants à Paris</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -197,19 +197,14 @@
     height: calc(100vh - 82px);
 }
 #map {
-    flex: 1;
-    height: calc(100vh - 82px);
-    width: 100%;
-    z-index: 1;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+  background: #ddd;
+  z-index: 1;
 }
 
-#map {
-    flex: 1;
-    height: 100%;
-    min-height: 300px;
-    width: 100%;
-    z-index: 1;
-}
         /* === POPUP === */
         .custom-popup .leaflet-popup-content-wrapper {
             border-radius: 12px;
@@ -468,6 +463,14 @@
         // Initialiser la carte
         function initMap() {
             map = L.map('map').setView([48.8566, 2.3522], 12);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+            setTimeout(() => {
+    map.invalidateSize();
+}, 300);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
