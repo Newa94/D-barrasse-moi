@@ -155,14 +155,15 @@
   // 1) REMPLACE ICI
   const SUPABASE_URL = window.ENV.SUPABASE_URL;
 const SUPABASE_ANON_KEY = window.ENV.SUPABASE_ANON_KEY;
-
+  
+alert("ENV loaded? " + JSON.stringify(window.ENV));
+  
 const sb = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
   // supabase-js v2 via CDN expose "supabase" global
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+  
   // Centers approximatifs (Paris)
   const centers = {
     "1":[48.8606,2.3376],"2":[48.8679,2.3415],"3":[48.8637,2.3615],"4":[48.8544,2.3574],
