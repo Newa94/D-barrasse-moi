@@ -193,8 +193,14 @@
         }
         
 /* === MAP === */
-html, body {
-    height: 100%;
+        .container {
+    height: calc(100vh - 82px);
+}
+#map {
+    flex: 1;
+    height: calc(100vh - 82px);
+    width: 100%;
+    z-index: 1;
 }
 
 #map {
