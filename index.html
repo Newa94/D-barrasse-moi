@@ -2,12 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Débarrasse-moi - Signalement d'encombrants à Paris</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./env.js"></script>
     <style>
         * {
             margin: 0;
@@ -16,95 +13,96 @@
         }
 
         html, body {
+            width: 100%;
             height: 100%;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f0f4f8;
+            display: flex;
+            flex-direction: column;
         }
 
         /* === HEADER === */
         .header {
             background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
             color: white;
-            padding: 1rem 2rem;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            position: relative;
-            z-index: 1000;
-            height: 82px;
+            gap: 12px;
             flex-shrink: 0;
+            z-index: 1000;
         }
 
         .logo {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             flex-shrink: 0;
         }
 
         .header-text h1 {
-            font-size: 1.75rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            letter-spacing: -0.5px;
         }
 
         .header-text p {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             opacity: 0.8;
-            margin-top: 2px;
         }
 
-        /* === LAYOUT === */
-        .container {
+        /* === MAIN LAYOUT === */
+        .main-wrapper {
+            flex: 1;
             display: flex;
-            height: calc(100vh - 82px);
-            height: calc(100dvh - 82px);
+            overflow: hidden;
+            position: relative;
         }
 
         /* === SIDEBAR === */
         .sidebar {
-            width: 380px;
+            width: 360px;
             background: white;
-            padding: 1.5rem;
+            padding: 20px;
             overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             flex-shrink: 0;
+            z-index: 100;
+            -webkit-overflow-scrolling: touch;
         }
 
         .sidebar h2 {
             color: #2d3748;
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.4rem;
+            margin-bottom: 4px;
             color: #4a5568;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.7rem;
+            padding: 10px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-group input:focus,
@@ -112,17 +110,20 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #48bb78;
-            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 70px;
+        }
+
+        .form-group select {
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
         }
 
         .btn-submit {
             width: 100%;
-            padding: 0.9rem;
+            padding: 12px;
             background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
             color: white;
             border: none;
@@ -130,55 +131,29 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+            -webkit-appearance: none;
         }
 
         .btn-submit:disabled {
             background: #a0aec0;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .info-box {
-            background: #ebf8ff;
-            border-left: 4px solid #4299e1;
-            padding: 1rem;
-            border-radius: 0 8px 8px 0;
-            margin-top: 1.5rem;
-        }
-
-        .info-box p {
-            color: #2b6cb0;
-            font-size: 0.85rem;
-            line-height: 1.5;
         }
 
         .stats {
             background: #f7fafc;
-            padding: 1rem;
+            padding: 12px;
             border-radius: 8px;
-            margin-top: 1rem;
+            margin-top: 15px;
         }
 
         .stats-title {
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .stats-count {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #48bb78;
         }
@@ -186,9 +161,9 @@
         .connection-status {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
+            gap: 6px;
+            font-size: 0.75rem;
+            margin-top: 6px;
         }
 
         .status-dot {
@@ -202,42 +177,61 @@
             background: #f56565;
         }
 
-        /* === MAP === */
-        /* === MAP (FIX FINAL) === */
-.container{
-  display:flex;
-  height: calc(100vh - 82px);
-  height: calc(100dvh - 82px);
-}
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+        }
 
-#map{
-  flex: 1;
-  min-width: 0;         /* IMPORTANT pour flex + iPad/Safari */
-  height: 100%;
-  min-height: 400px;
-  background: #e2e8f0;  /* juste pour voir si le bloc existe */
-}
+        .info-box p {
+            color: #2b6cb0;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        /* === MAP CONTAINER - CLÉ DU FIX === */
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        #map {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1;
+        }
+
+        /* Fix Leaflet sur iOS */
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .leaflet-tile-pane {
+            -webkit-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+        }
 
         /* === POPUP === */
-        .custom-popup .leaflet-popup-content-wrapper {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .popup-content {
-            padding: 0.5rem;
-        }
-
         .popup-content h3 {
             color: #2d3748;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
         }
 
         .popup-content p {
             color: #718096;
-            font-size: 0.85rem;
-            margin: 0.3rem 0;
+            font-size: 0.8rem;
+            margin: 4px 0;
         }
 
         .popup-content .date {
@@ -247,41 +241,31 @@
 
         .btn-reserve {
             width: 100%;
-            margin-top: 0.75rem;
-            padding: 0.6rem 1rem;
+            margin-top: 10px;
+            padding: 8px;
             background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-        }
-
-        .btn-reserve:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(66, 153, 225, 0.4);
         }
 
         /* === TOAST === */
         .toast {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
             background: #48bb78;
             color: white;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.3s ease;
-            z-index: 2000;
+            z-index: 9999;
         }
 
         .toast.show {
@@ -289,69 +273,57 @@
             opacity: 1;
         }
 
-        .toast.error {
-            background: #f56565;
-        }
-
-        .toast.info {
-            background: #4299e1;
-        }
+        .toast.error { background: #f56565; }
+        .toast.info { background: #4299e1; }
 
         /* === RESPONSIVE === */
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.75rem 1rem;
-                height: 70px;
-            }
-
-            .header-text h1 {
-                font-size: 1.25rem;
-            }
-
-            .logo {
-                width: 40px;
-                height: 40px;
-            }
-
-            .container {
-                flex-direction: column;
-                height: calc(100vh - 70px);
-                height: calc(100dvh - 70px);
+        @media (max-width: 900px) {
+            .main-wrapper {
+                flex-direction: column-reverse;
             }
 
             .sidebar {
                 width: 100%;
-                order: 2;
-                max-height: 50%;
-                overflow-y: auto;
+                max-height: 45%;
+                border-top: 1px solid #e2e8f0;
             }
 
-            #map {
-                order: 1;
-                min-height: 300px;
+            .map-wrapper {
                 flex: 1;
+                min-height: 55%;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .header {
+                padding: 10px 15px;
+            }
+
+            .header-text h1 {
+                font-size: 1.2rem;
+            }
+
+            .sidebar {
+                padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- HEADER -->
     <header class="header">
         <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M25 30 L20 85 Q20 95 30 95 L70 95 Q80 95 80 85 L75 30 Z" fill="#48bb78"/>
+            <defs>
+                <linearGradient id="bagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#48bb78" />
+                    <stop offset="100%" style="stop-color:#38a169" />
+                </linearGradient>
+            </defs>
             <path d="M25 30 L20 85 Q20 95 30 95 L70 95 Q80 95 80 85 L75 30 Z" fill="url(#bagGradient)"/>
             <ellipse cx="50" cy="28" rx="20" ry="8" fill="#38a169"/>
             <path d="M40 20 Q50 10 60 20" stroke="#38a169" stroke-width="6" fill="none" stroke-linecap="round"/>
             <circle cx="38" cy="55" r="4" fill="#1a202c"/>
             <circle cx="62" cy="55" r="4" fill="#1a202c"/>
             <path d="M35 70 Q50 82 65 70" stroke="#1a202c" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <ellipse cx="35" cy="45" rx="6" ry="3" fill="rgba(255,255,255,0.3)"/>
-            <defs>
-                <linearGradient id="bagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#48bb78;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#38a169;stop-opacity:1" />
-                </linearGradient>
-            </defs>
         </svg>
         <div class="header-text">
             <h1>Débarrasse-moi</h1>
@@ -359,8 +331,7 @@
         </div>
     </header>
 
-    <div class="container">
-        <!-- SIDEBAR -->
+    <div class="main-wrapper">
         <aside class="sidebar">
             <h2>📍 Nouveau signalement</h2>
             
@@ -407,9 +378,7 @@
                     <input type="date" id="date" required>
                 </div>
 
-                <button type="submit" class="btn-submit" id="btnSubmit">
-                    <span>🗑️</span> Signaler l'encombrant
-                </button>
+                <button type="submit" class="btn-submit" id="btnSubmit">🗑️ Signaler l'encombrant</button>
             </form>
 
             <div class="stats">
@@ -417,316 +386,316 @@
                 <div class="stats-count" id="statsCount">-</div>
                 <div class="connection-status">
                     <div class="status-dot" id="statusDot"></div>
-                    <span id="statusText">Connexion à Supabase...</span>
+                    <span id="statusText">Connexion...</span>
                 </div>
             </div>
 
             <div class="info-box">
-                <p>💡 <strong>Astuce :</strong> Cliquez sur la carte pour placer automatiquement un marqueur et remplir les coordonnées.</p>
+                <p>💡 <strong>Astuce :</strong> Touchez la carte pour placer un marqueur.</p>
             </div>
         </aside>
 
-        <!-- MAP -->
-        <div id="map"></div>
+        <div class="map-wrapper">
+            <div id="map"></div>
+        </div>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./env.js"></script>
     <script>
-        // Configuration Supabase depuis env.js
-        const ENV = window.ENV || {};
-const SUPABASE_URL = ENV.SUPABASE_URL;
-const SUPABASE_ANON_KEY = ENV.SUPABASE_ANON_KEY;
+    (function() {
+        'use strict';
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error("❌ env.js non chargé ou invalide", window.ENV);
-}
+        // === CONFIGURATION ===
+        var ENV = window.ENV || {};
+        var SUPABASE_URL = ENV.SUPABASE_URL;
+        var SUPABASE_ANON_KEY = ENV.SUPABASE_ANON_KEY;
+        var supabaseClient = null;
 
-const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
-        // Variables globales
-        let map;
-        let markers = [];
-        let markersById = {};
-        let tempMarker = null;
-        let selectedCoords = null;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
-        // Icône personnalisée
-        const trashIcon = L.divIcon({
-            html: `<div style="
-                background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-                width: 32px;
-                height: 32px;
-                border-radius: 50% 50% 50% 0;
-                transform: rotate(-45deg);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-                border: 2px solid white;
-            "><span style="transform: rotate(45deg); font-size: 14px;">🗑️</span></div>`,
-            className: 'custom-marker',
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
+        // === VARIABLES ===
+        var map = null;
+        var markers = [];
+        var markersById = {};
+        var tempMarker = null;
+        var selectedCoords = null;
+
+        // === ICÔNES ===
+        var trashIcon = L.divIcon({
+            html: '<div style="background:linear-gradient(135deg,#48bb78,#38a169);width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid white;"><span style="transform:rotate(45deg);font-size:12px;">🗑️</span></div>',
+            className: '',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
         });
 
-        const tempIcon = L.divIcon({
-            html: `<div style="
-                background: #4299e1;
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-                border: 2px solid white;
-                animation: pulse 1.5s infinite;
-            "><span style="font-size: 12px;">📍</span></div>
-            <style>
-                @keyframes pulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                }
-            </style>`,
-            className: 'temp-marker',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
+        var tempIcon = L.divIcon({
+            html: '<div style="background:#4299e1;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid white;"><span style="font-size:10px;">📍</span></div>',
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
         });
 
-        // Initialiser la carte
-alert("AVANT initMap");
+        // === INIT MAP ===
         function initMap() {
-  // Debug visuel : si tu vois le gris, le #map existe bien
-  const el = document.getElementById('map');
-  el.style.background = '#e2e8f0';
+            var mapEl = document.getElementById('map');
+            if (!mapEl) {
+                console.error('Element #map non trouvé');
+                return;
+            }
 
-  map = L.map('map', {
-    center: [48.8566, 2.3522],
-    zoom: 12,
-    zoomControl: true
-  });
+            // Créer la carte
+            map = L.map(mapEl, {
+                center: [48.8566, 2.3522],
+                zoom: 12,
+                zoomControl: true,
+                tap: true,
+                dragging: true,
+                touchZoom: true
+            });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19
-  }).addTo(map);
-alert("APRES initMap");
-  // FIX iPad/Safari : attendre que le layout soit réellement terminé
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      map.invalidateSize(true);
-    });
-  });
+            // Ajouter les tuiles
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
 
-  map.on('click', onMapClick);
+            // Événement clic
+            map.on('click', onMapClick);
 
-  // Petit marqueur de test : si tu le vois, Leaflet marche
-  L.marker([48.8566, 2.3522]).addTo(map).bindPopup("✅ Leaflet OK").openPopup();
-}
+            // Force le redimensionnement après chargement complet
+            function forceResize() {
+                if (map) {
+                    map.invalidateSize(true);
+                }
+            }
 
-        // Gestion du clic sur la carte
-        async function onMapClick(e) {
-            const { lat, lng } = e.latlng;
-            selectedCoords = { lat, lng };
+            // Plusieurs tentatives de redimensionnement
+            setTimeout(forceResize, 100);
+            setTimeout(forceResize, 300);
+            setTimeout(forceResize, 500);
+            setTimeout(forceResize, 1000);
+            setTimeout(forceResize, 2000);
+
+            // Écouter le resize
+            window.addEventListener('resize', function() {
+                setTimeout(forceResize, 100);
+            });
+
+            // Écouter l'orientation
+            window.addEventListener('orientationchange', function() {
+                setTimeout(forceResize, 300);
+            });
+        }
+
+        // === MAP CLICK ===
+        function onMapClick(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+            selectedCoords = { lat: lat, lng: lng };
 
             if (tempMarker) {
                 map.removeLayer(tempMarker);
             }
-
             tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(map);
 
-            try {
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
-                );
-                const data = await response.json();
+            // Géocodage inverse
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.address) {
+                        var addr = data.address;
+                        var street = ((addr.house_number || '') + ' ' + (addr.road || addr.pedestrian || '')).trim();
+                        document.getElementById('adresse').value = street || (data.display_name || '').split(',')[0];
 
-                if (data.address) {
-                    const addr = data.address;
-                    const street = `${addr.house_number || ''} ${addr.road || addr.pedestrian || ''}`.trim();
-                    document.getElementById('adresse').value = street || data.display_name.split(',')[0];
-
-                    const postcode = addr.postcode;
-                    if (postcode && postcode.startsWith('750')) {
-                        document.getElementById('arrondissement').value = postcode;
+                        if (addr.postcode && addr.postcode.indexOf('750') === 0) {
+                            document.getElementById('arrondissement').value = addr.postcode;
+                        }
                     }
-                }
-            } catch (error) {
-                // Géocodage non disponible
-            }
+                })
+                .catch(function() {});
 
-            showToast('📍 Position sélectionnée ! Complétez le formulaire.');
+            showToast('📍 Position sélectionnée !');
         }
 
-        // Initialiser le formulaire
+        // === INIT FORM ===
         function initForm() {
-            document.getElementById('date').valueAsDate = new Date();
+            var dateInput = document.getElementById('date');
+            var today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
 
-            document.getElementById('signalementForm').addEventListener('submit', async function(e) {
+            document.getElementById('signalementForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                await addSignalement();
+                addSignalement();
             });
         }
 
-        // Charger les signalements depuis Supabase (uniquement non réservés)
-        async function loadSignalements() {
-            try {
-                const { data, error } = await supabase
-                    .from('signalements')
-                    .select('*')
-                    .eq('reserved', false)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                updateConnectionStatus(true);
-
-                markers.forEach(function(m) {
-                    map.removeLayer(m);
-                });
-                markers = [];
-                markersById = {};
-
-                data.forEach(function(sig) {
-                    addMarkerToMap(sig);
-                });
-
-                document.getElementById('statsCount').textContent = data.length;
-
-            } catch (error) {
+        // === LOAD SIGNALEMENTS ===
+        function loadSignalements() {
+            if (!supabaseClient) {
                 updateConnectionStatus(false);
-                showToast('❌ Erreur de connexion à la base de données', 'error');
+                return;
             }
+
+            supabaseClient
+                .from('signalements')
+                .select('*')
+                .eq('reserved', false)
+                .order('created_at', { ascending: false })
+                .then(function(result) {
+                    if (result.error) {
+                        throw result.error;
+                    }
+
+                    updateConnectionStatus(true);
+
+                    // Nettoyer les anciens marqueurs
+                    markers.forEach(function(m) {
+                        map.removeLayer(m);
+                    });
+                    markers = [];
+                    markersById = {};
+
+                    // Ajouter les nouveaux
+                    var data = result.data || [];
+                    data.forEach(function(sig) {
+                        addMarkerToMap(sig);
+                    });
+
+                    document.getElementById('statsCount').textContent = data.length;
+                })
+                .catch(function() {
+                    updateConnectionStatus(false);
+                    showToast('❌ Erreur de connexion', 'error');
+                });
         }
 
-        // Ajouter un signalement
-        async function addSignalement() {
-            const btn = document.getElementById('btnSubmit');
+        // === ADD SIGNALEMENT ===
+        function addSignalement() {
+            if (!supabaseClient) {
+                showToast('❌ Base de données non connectée', 'error');
+                return;
+            }
+
+            var btn = document.getElementById('btnSubmit');
             btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span> Envoi en cours...';
+            btn.textContent = '⏳ Envoi...';
 
-            const adresse = document.getElementById('adresse').value.trim();
-            const arrondissement = document.getElementById('arrondissement').value;
-            const description = document.getElementById('description').value.trim();
-            const date = document.getElementById('date').value;
+            var adresse = document.getElementById('adresse').value.trim();
+            var arrondissement = document.getElementById('arrondissement').value;
+            var description = document.getElementById('description').value.trim();
+            var date = document.getElementById('date').value;
 
-            let lat, lng;
+            var lat, lng;
             if (selectedCoords) {
                 lat = selectedCoords.lat;
                 lng = selectedCoords.lng;
             } else {
-                const coords = getArrondissementCoords(arrondissement);
+                var coords = getArrondissementCoords(arrondissement);
                 lat = coords.lat + (Math.random() - 0.5) * 0.01;
                 lng = coords.lng + (Math.random() - 0.5) * 0.01;
             }
 
-            try {
-                const { data, error } = await supabase
-                    .from('signalements')
-                    .insert([{
-                        adresse,
-                        arrondissement,
-                        description,
-                        date,
-                        lat,
-                        lng,
-                        reserved: false
-                    }])
-                    .select()
-                    .single();
+            supabaseClient
+                .from('signalements')
+                .insert([{
+                    adresse: adresse,
+                    arrondissement: arrondissement,
+                    description: description,
+                    date: date,
+                    lat: lat,
+                    lng: lng,
+                    reserved: false
+                }])
+                .select()
+                .single()
+                .then(function(result) {
+                    if (result.error) throw result.error;
 
-                if (error) throw error;
+                    addMarkerToMap(result.data);
 
-                addMarkerToMap(data);
-
-                if (tempMarker) {
-                    map.removeLayer(tempMarker);
-                    tempMarker = null;
-                }
-                selectedCoords = null;
-
-                const count = parseInt(document.getElementById('statsCount').textContent) || 0;
-                document.getElementById('statsCount').textContent = count + 1;
-
-                document.getElementById('signalementForm').reset();
-                document.getElementById('date').valueAsDate = new Date();
-
-                map.setView([lat, lng], 15);
-
-                showToast('✅ Signalement enregistré avec succès !');
-
-            } catch (error) {
-                showToast('❌ Erreur lors de l\'enregistrement', 'error');
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = '<span>🗑️</span> Signaler l\'encombrant';
-        }
-
-        // Réserver un signalement
-        async function reserveSignalement(id) {
-            if (!confirm('Voulez-vous réserver cet encombrant ?')) {
-                return;
-            }
-
-            try {
-                const { error } = await supabase
-                    .from('signalements')
-                    .update({ reserved: true })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                // Retirer le marker de la carte
-                if (markersById[id]) {
-                    map.removeLayer(markersById[id]);
-                    const index = markers.indexOf(markersById[id]);
-                    if (index > -1) {
-                        markers.splice(index, 1);
+                    if (tempMarker) {
+                        map.removeLayer(tempMarker);
+                        tempMarker = null;
                     }
-                    delete markersById[id];
-                }
+                    selectedCoords = null;
 
-                // Mettre à jour le compteur
-                const count = parseInt(document.getElementById('statsCount').textContent) || 0;
-                document.getElementById('statsCount').textContent = Math.max(0, count - 1);
+                    var count = parseInt(document.getElementById('statsCount').textContent) || 0;
+                    document.getElementById('statsCount').textContent = count + 1;
 
-                showToast('✅ Réservé avec succès !', 'info');
+                    document.getElementById('signalementForm').reset();
+                    document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-            } catch (error) {
-                showToast('❌ Erreur lors de la réservation', 'error');
-            }
+                    map.setView([lat, lng], 15);
+                    showToast('✅ Signalement enregistré !');
+
+                    btn.disabled = false;
+                    btn.textContent = '🗑️ Signaler l\'encombrant';
+                })
+                .catch(function() {
+                    showToast('❌ Erreur lors de l\'enregistrement', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '🗑️ Signaler l\'encombrant';
+                });
         }
 
-        // Ajouter un marqueur sur la carte
-        function addMarkerToMap(signalement) {
-            const popupContent = `
-                <div class="popup-content">
-                    <h3>📍 ${signalement.adresse}</h3>
-                    <p><strong>Arrondissement :</strong> ${formatArrondissement(signalement.arrondissement)}</p>
-                    ${signalement.description ? `<p><strong>Description :</strong> ${signalement.description}</p>` : ''}
-                    <p class="date">📅 Signalé le ${formatDate(signalement.date)}</p>
-                    <button class="btn-reserve" onclick="reserveSignalement('${signalement.id}')">
-                        ✅ Réserver
-                    </button>
-                </div>
-            `;
+        // === RESERVE ===
+        window.reserveSignalement = function(id) {
+            if (!confirm('Voulez-vous réserver cet encombrant ?')) return;
+            if (!supabaseClient) return;
 
-            const marker = L.marker([signalement.lat, signalement.lng], { icon: trashIcon })
+            supabaseClient
+                .from('signalements')
+                .update({ reserved: true })
+                .eq('id', id)
+                .then(function(result) {
+                    if (result.error) throw result.error;
+
+                    if (markersById[id]) {
+                        map.removeLayer(markersById[id]);
+                        var idx = markers.indexOf(markersById[id]);
+                        if (idx > -1) markers.splice(idx, 1);
+                        delete markersById[id];
+                    }
+
+                    var count = parseInt(document.getElementById('statsCount').textContent) || 0;
+                    document.getElementById('statsCount').textContent = Math.max(0, count - 1);
+
+                    showToast('✅ Réservé !', 'info');
+                })
+                .catch(function() {
+                    showToast('❌ Erreur', 'error');
+                });
+        };
+
+        // === ADD MARKER ===
+        function addMarkerToMap(sig) {
+            var descHtml = sig.description ? '<p><strong>Description :</strong> ' + sig.description + '</p>' : '';
+            var popup = '<div class="popup-content">' +
+                '<h3>📍 ' + sig.adresse + '</h3>' +
+                '<p><strong>Arrondissement :</strong> ' + formatArrondissement(sig.arrondissement) + '</p>' +
+                descHtml +
+                '<p class="date">📅 ' + formatDate(sig.date) + '</p>' +
+                '<button class="btn-reserve" onclick="reserveSignalement(\'' + sig.id + '\')">✅ Réserver</button>' +
+                '</div>';
+
+            var marker = L.marker([sig.lat, sig.lng], { icon: trashIcon })
                 .addTo(map)
-                .bindPopup(popupContent, { className: 'custom-popup' });
+                .bindPopup(popup);
 
             markers.push(marker);
-            markersById[signalement.id] = marker;
+            markersById[sig.id] = marker;
         }
 
-        // Coordonnées approximatives par arrondissement
+        // === HELPERS ===
         function getArrondissementCoords(code) {
-            const coords = {
+            var coords = {
                 '75001': { lat: 48.8607, lng: 2.3426 },
                 '75002': { lat: 48.8675, lng: 2.3411 },
                 '75003': { lat: 48.8637, lng: 2.3592 },
@@ -751,57 +720,53 @@ alert("APRES initMap");
             return coords[code] || { lat: 48.8566, lng: 2.3522 };
         }
 
-        // Formater l'arrondissement
         function formatArrondissement(code) {
-            const num = parseInt(code.slice(-2));
-            return num === 1 ? '1er' : `${num}ème`;
+            var num = parseInt(code.slice(-2));
+            return num === 1 ? '1er' : num + 'ème';
         }
 
-        // Formater la date
         function formatDate(dateStr) {
-            return new Date(dateStr).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+            var d = new Date(dateStr);
+            var months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+            return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
         }
 
-        // Mettre à jour le statut de connexion
         function updateConnectionStatus(connected) {
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('statusText');
-
+            var dot = document.getElementById('statusDot');
+            var text = document.getElementById('statusText');
             if (connected) {
-                dot.classList.remove('offline');
-                text.textContent = 'Connecté à Supabase';
+                dot.className = 'status-dot';
+                text.textContent = 'Connecté';
             } else {
-                dot.classList.add('offline');
+                dot.className = 'status-dot offline';
                 text.textContent = 'Hors ligne';
             }
         }
 
-        // Afficher un toast
         function showToast(message, type) {
-            const toast = document.getElementById('toast');
+            var toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.className = 'toast show';
-            if (type === 'error') {
-                toast.classList.add('error');
-            } else if (type === 'info') {
-                toast.classList.add('info');
-            }
-
+            toast.className = 'toast show' + (type ? ' ' + type : '');
             setTimeout(function() {
                 toast.className = 'toast';
             }, 3000);
         }
 
-        // Initialisation au chargement
-        document.addEventListener('DOMContentLoaded', async function() {
+        // === DÉMARRAGE ===
+        function start() {
             initMap();
             initForm();
-            await loadSignalements();
-        });
+            loadSignalements();
+        }
+
+        // Attendre que tout soit chargé
+        if (document.readyState === 'complete') {
+            start();
+        } else {
+            window.addEventListener('load', start);
+        }
+
+    })();
     </script>
 </body>
 </html>
