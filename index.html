@@ -498,6 +498,7 @@ const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
         });
 
         // Initialiser la carte
+alert("AVANT initMap");
         function initMap() {
   // Debug visuel : si tu vois le gris, le #map existe bien
   const el = document.getElementById('map');
@@ -513,7 +514,7 @@ const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
   }).addTo(map);
-
+alert("APRES initMap");
   // FIX iPad/Safari : attendre que le layout soit réellement terminé
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
