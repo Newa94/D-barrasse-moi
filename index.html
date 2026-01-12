@@ -203,13 +203,20 @@
         }
 
         /* === MAP === */
-        #map {
-            flex: 1;
-            min-height: 400px;
-            height: 100%;
-            width: 100%;
-            background: #e2e8f0;
-        }
+        /* === MAP (FIX FINAL) === */
+.container{
+  display:flex;
+  height: calc(100vh - 82px);
+  height: calc(100dvh - 82px);
+}
+
+#map{
+  flex: 1;
+  min-width: 0;         /* IMPORTANT pour flex + iPad/Safari */
+  height: 100%;
+  min-height: 400px;
+  background: #e2e8f0;  /* juste pour voir si le bloc existe */
+}
 
         /* === POPUP === */
         .custom-popup .leaflet-popup-content-wrapper {
@@ -492,23 +499,33 @@ const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
 
         // Initialiser la carte
         function initMap() {
-            map = L.map('map', {
-                center: [48.8566, 2.3522],
-                zoom: 12,
-                zoomControl: true
-            });
+  // Debug visuel : si tu vois le gris, le #map existe bien
+  const el = document.getElementById('map');
+  el.style.background = '#e2e8f0';
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
+  map = L.map('map', {
+    center: [48.8566, 2.3522],
+    zoom: 12,
+    zoomControl: true
+  });
 
-            setTimeout(function() {
-                map.invalidateSize();
-            }, 300);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
 
-            map.on('click', onMapClick);
-        }
+  // FIX iPad/Safari : attendre que le layout soit réellement terminé
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      map.invalidateSize(true);
+    });
+  });
+
+  map.on('click', onMapClick);
+
+  // Petit marqueur de test : si tu le vois, Leaflet marche
+  L.marker([48.8566, 2.3522]).addTo(map).bindPopup("✅ Leaflet OK").openPopup();
+}
 
         // Gestion du clic sur la carte
         async function onMapClick(e) {
